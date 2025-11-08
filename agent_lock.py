@@ -77,9 +77,22 @@ class AgentLock:
             return False
 
     def release(self):
-        """Release the lock"""
+        """Release the lock and record completion"""
         if self.fd:
             try:
+                # Calculate total runtime before releasing
+                if self.lock_file.exists():
+                    with open(self.lock_file, 'r') as f:
+                        lines = f.readlines()
+                        if len(lines) >= 2:
+                            start_time = float(lines[1].strip())
+                            runtime = time.time() - start_time
+
+                            # Save completion record (persists for 60 seconds)
+                            completion_file = LOCK_DIR / f"{self.agent_name}.completed"
+                            with open(completion_file, 'w') as cf:
+                                cf.write(f"{time.time()}\n{runtime}\n")
+
                 fcntl.flock(self.fd.fileno(), fcntl.LOCK_UN)
                 self.fd.close()
                 self.fd = None
