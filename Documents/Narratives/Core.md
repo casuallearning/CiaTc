@@ -25,6 +25,11 @@
 - Agent naming evolution: build_health renamed to Gilfoyle for clarity and philosophical alignment
 - Stop hook updated with new agent lineup reflecting system architecture changes
 - Archive of legacy Janitor prompts to maintain clean project history
+- Band agent statusline monitoring: shell scripts for real-time visualization of running agents with elapsed time display
+  - band_statusline.sh: monitors lock files in .band_cache/locks to detect active agents and display progress
+  - demo_band_statusline.sh: demonstrates statusline output in various agent execution scenarios
+  - Visual indicators: emoji icons for each agent (📁john, 📖george, 🔧pete, 💡paul, 🥁ringo, 🧹marie, 🏗️gilfoyle)
+  - Elapsed time tracking: displays seconds or minutes:seconds format for each running agent
 
 ## Key Decisions Made
 - Separated analysis into "Band" (John, George, Pete, Paul, Ringo) and "Janitors" (Marie, Descartes, Feynman)
@@ -57,6 +62,9 @@
 - Legacy Janitor prompts archived to maintain clean, trackable project history
 - Marie granted broad organizational authority: proactive file reorganization, cleanup, and structure improvements
 - Philosophy established: if Marie's changes temporarily break something, that's feedback on poor initial placement by main agent
+- Implemented Band statusline monitoring: shell scripts for real-time visualization of agent execution progress
+- Decision to track running agents via lock file monitoring in .band_cache/locks directory
+- Visual statusline design: emoji-based agent identifiers with elapsed time display for operational transparency
 
 ## Problems Being Solved
 - Need for systematic AI response quality control through multi-perspective analysis
@@ -89,7 +97,10 @@
 - Janitor system integration: determining storage strategy for critique output (temp files vs persistent logging)
 - Code simplification initiative: removing complex recursion prevention in favor of maintainability
 - User preference for simple, debuggable code over robust but complex error handling patterns
-- Potential statusline integration for Band execution progress visualization
+- Statusline integration for Band execution progress visualization: real-time display of active agents with elapsed time
+  - band_statusline.sh monitors lock files for active agent detection
+  - Integration with Claude Code's statusline feature for persistent visibility during long operations
+  - Emoji-based visual indicators for quick agent identification
 - Paul's architectural input being sought on orchestrator design and optimization opportunities
 - Paul's evolution: Feynman thinking now core to wild ideas - all architectures must be explainable simply
 - Gilfoyle health agent fully integrated in Phase 1 parallel execution (renamed from build_health)
@@ -98,6 +109,7 @@
 - Legacy system cleanup: archiving old Janitor prompts while maintaining project history
 - Empowering Marie with aggressive organizational authority: proactive restructuring, file movement, and cleanup without permission
 - Establishing feedback loop: temporary breakage from Marie's reorganization indicates poor initial placement decisions
+- Operational visibility: extending Band orchestrator monitoring to show real-time progress in development workflow
 
 ## Technical Patterns Emerging
 - Two-phase orchestration: Band (pre-response) → Response → Janitors (post-response)
@@ -123,3 +135,7 @@
 - Feynman simplicity principle: embedded in Paul's prompt - all wild ideas must be explainable simply
 - Naming convention pattern: agents named after philosophers/personas with roles tied to expertise (Gilfoyle for health monitoring)
 - Prompt archival pattern: legacy prompts archived to maintain clean version history while preserving context
+- Lock file monitoring pattern: agents write PID and timestamp to .band_cache/locks/*.lock for state tracking
+- Statusline visualization pattern: shell scripts monitor lock files to display active agents with emoji identifiers and elapsed time
+- Process validation: statusline checks ps for PID validity to only show genuinely running agents
+- Time formatting pattern: elapsed time converted to "Xs" or "XmYs" format for compact readability in statusline

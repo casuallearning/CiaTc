@@ -50,7 +50,16 @@ This index tracks all narrative documents maintained by George (the Narrative Ma
 
 ---
 
-**Last Updated:** November 8, 2025
+**Last Updated:** November 8, 2025 - 12:47 PM
+- Narratives updated with Band statusline monitoring feature implementation
+- Core.md: Added statusline feature with monitoring scripts and visual indicators
+- Scripts.md: Updated with new statusline scripts and operational transparency enhancements
+- Band agent statusline provides real-time visibility of active agents with elapsed time tracking
+- Emoji-based agent identification: 📁john, 📖george, 🔧pete, 💡paul, 🥁ringo, 🧹marie, 🏗️gilfoyle
+- Lock file monitoring pattern established for lightweight agent state tracking
+- Technical patterns documented for future statusline extensions and enhancements
+
+Previous update: November 8, 2025
 - All narrative documents updated with latest file_index.md changes
 - New technical documentation files added: architectural_patterns.md and operational_patterns.md
 - prompts/marie_active.md added to Prompts category
