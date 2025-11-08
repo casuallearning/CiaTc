@@ -50,7 +50,16 @@ This index tracks all narrative documents maintained by George (the Narrative Ma
 
 ---
 
-**Last Updated:** November 8, 2025 - 20:26 PM
+**Last Updated:** November 8, 2025 - 20:32 PM
+- **Claude Code statusline integration underway** (Nov 8, 2025): statusline-command.sh improvements for band monitoring
+- Scripts.md: Added Claude Code statusline integration details to Main Conversation Themes
+- Scripts.md: Updated Direction of Work with current statusline-command.sh development activities
+- Scripts.md: Extended Technical Patterns with Claude Code statusline command pattern documentation
+- Scripts.md: Documented status consolidation pattern (model, git, directory, band agents in single line)
+- Scripts.md: Added lock file detection and process validation patterns for statusline display
+- All narrative documents updated with latest Claude Code statusline integration progress
+
+**Previous update:** November 8, 2025 - 20:26 PM
 - **Performance Optimization Findings**: SmartOrchestrator bottleneck identified and documented
 - Core.md: Added SmartOrchestrator initialization delay (1+ minutes) to Problems section with root cause analysis
 - Core.md: Documented directory mtime fast-path solution strategy with expected improvements

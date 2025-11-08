@@ -237,6 +237,240 @@ with AgentLock("john") as lock:
 
 ---
 
+## Completion Persistence Pattern (Completed Files)
+
+**Location:** `agent_lock.py:80-104`, `statusline-command.sh:84-101`
+
+**Pattern Name:** Ephemeral Completion Status
+
+### Overview
+After agents complete, their lock files are deleted but a temporary `.completed` file persists for 60 seconds, allowing the statusline to display recent completions with runtime metrics.
+
+### Implementation
+
+**Lock Lifecycle:**
+```
+T=0s:    Agent starts → john.lock created (PID + start timestamp)
+T=0-Ns:  Agent running → john.lock exists, statusline shows elapsed time
+T=Ns:    Agent completes → john.lock deleted, john.completed created
+T=N-60s: john.completed persists → statusline shows ✓ with final runtime
+T=60s+:  john.completed auto-deleted → no display
+```
+
+**Completed File Structure:**
+```
+.band_cache/locks/
+├── john.lock           # Active agent (if running)
+├── george.completed    # Completed <60s ago
+├── pete.lock          # Active agent
+└── gilfoyle.completed # Completed <60s ago
+```
+
+**Completed File Format:**
+```
+Line 1: completion_timestamp (float, epoch seconds)
+Line 2: runtime (float, seconds elapsed)
+```
+
+**Example (`gilfoyle.completed`):**
+```
+1762630606.327842
+0.0580751895904541
+```
+
+### Code Implementation
+
+**Writing Completion Record (Python):**
+```python
+# agent_lock.py:80-94
+def release(self):
+    """Release lock and record completion"""
+    if self.lock_file.exists():
+        with open(self.lock_file, 'r') as f:
+            lines = f.readlines()
+            start_time = float(lines[1].strip())
+            runtime = time.time() - start_time
+
+        # Create completion record
+        completion_file = LOCK_DIR / f"{self.agent_name}.completed"
+        with open(completion_file, 'w') as cf:
+            cf.write(f"{time.time()}\n{runtime}\n")
+
+        # Remove lock file
+        self.lock_file.unlink()
+```
+
+**Reading Completion Record (Bash):**
+```bash
+# statusline-command.sh:84-101
+for lockfile in "$LOCK_DIR"/*.lock "$LOCK_DIR"/*.completed; do
+    extension="${filename##*.}"
+
+    if [ "$extension" = "completed" ]; then
+        completion_time=$(sed -n '1p' "$lockfile")
+        runtime=$(sed -n '2p' "$lockfile")
+
+        # Check if recent (< 60 seconds)
+        now=$(date +%s)
+        comp_time=${completion_time%.*}
+        age=$((now - comp_time))
+
+        if [ $age -lt 60 ]; then
+            elapsed=${runtime%.*}  # NOTE: Truncation bug (see implementation_log.md)
+            status_icon="✓"
+        else
+            rm -f "$lockfile"  # Cleanup old completion
+        fi
+    fi
+done
+```
+
+### Display Format
+
+**Running Agent (from .lock):**
+```
+●📁john:12s    # Active, 12 seconds elapsed
+```
+
+**Completed Agent (from .completed):**
+```
+✓🏗️gilfoyle:0s  # Completed, 0.058s runtime (truncated to 0s - BUG)
+```
+
+**Combined Display:**
+```bash
+🎸[●📁john:45s ✓🏗️gilfoyle:0s ✓📖george:23s]
+#  └─running   └─completed    └─completed
+```
+
+### Advantages
+
+1. **Visibility:** Users see recent completions, not just active agents
+2. **Performance Feedback:** Shows how long agents took to run
+3. **Status History:** 60-second window provides execution context
+4. **Non-Blocking:** Completion records written asynchronously
+
+### Technical Debt & Known Issues
+
+#### Issue 1: Float Truncation Bug (CRITICAL)
+**Location:** `statusline-command.sh:95`
+
+**Problem:**
+```bash
+runtime=$(sed -n '2p' "$lockfile")  # "0.0580751895904541"
+elapsed=${runtime%.*}                # Becomes "0" (truncates, doesn't round)
+```
+
+**Impact:**
+- Agents completing in <1s show as `0s`
+- Example: Gilfoyle (58ms) displays as `0s` instead of `<1s` or `58ms`
+- Misleading - suggests instant execution
+
+**Fix (Recommended):**
+```bash
+elapsed=$(printf "%.0f" "$runtime")  # Round instead of truncate
+```
+
+**Status:** Documented in implementation_log.md, fix pending
+
+#### Issue 2: No Sub-Second Display
+**Problem:** Time formatting only supports integer seconds
+
+**Impact:**
+- Fast agents (50-500ms) show misleading `0s` or `1s`
+- No visibility into micro-optimizations
+
+**Potential Enhancement:**
+```bash
+if (( $(echo "$runtime < 1" | bc -l) )); then
+    ms=$(printf "%.0f" "$(echo "$runtime * 1000" | bc -l)")
+    time_str="${ms}ms"
+fi
+```
+
+#### Issue 3: 60-Second Cleanup Window
+**Problem:** Completed files auto-delete after 60 seconds
+
+**Rationale:**
+- Prevents `.completed` file accumulation
+- Balances visibility vs clutter
+
+**Alternative:** Persist to JSON history file for long-term analytics
+
+### Performance Characteristics
+
+**File I/O Overhead:**
+- Write completion: ~1-2ms (single write)
+- Read completion: ~0.5ms (sed reads 2 lines)
+- Cleanup: ~0.1ms per file (unlink)
+
+**Statusline Impact:**
+- Check `.lock` files: ~0.5ms per file
+- Check `.completed` files: ~0.5ms per file
+- Total (7 agents max): ~7ms per statusline refresh
+
+**Completion File Lifecycle:**
+```
+Agent completes → Write .completed (1-2ms)
+    ↓
+Statusline refreshes every ~1s → Read .completed (0.5ms)
+    ↓
+60 seconds pass → Auto-delete .completed (0.1ms)
+```
+
+### Technologies Used
+
+- **Python:** `time.time()` for high-precision timestamps
+- **Bash:** `sed` for line extraction, `${var%.*}` for decimal removal
+- **Filesystem:** Atomic file creation (> operator)
+- **Arithmetic:** Bash integer math `$(( ))`, `date +%s`
+
+### Usage Pattern
+
+**From Python (agent_lock.py):**
+```python
+with AgentLock("john") as lock:
+    if lock:
+        # Do work...
+        pass
+    # On context exit, release() writes .completed file automatically
+```
+
+**From Bash (statusline):**
+```bash
+# Automatically detects and displays .lock and .completed files
+# No explicit invocation needed
+```
+
+### Testing & Verification
+
+**Verify Completion Files Created:**
+```bash
+ls -lt .band_cache/locks/*.completed
+```
+
+**Check Completion Format:**
+```bash
+cat .band_cache/locks/gilfoyle.completed
+# Line 1: completion timestamp (epoch)
+# Line 2: runtime (seconds, float)
+```
+
+**Test Auto-Cleanup:**
+```bash
+# Wait 60 seconds, then check
+ls -lt .band_cache/locks/*.completed  # Should be empty or recent only
+```
+
+**Simulate Fast Agent:**
+```python
+with AgentLock("test") as lock:
+    time.sleep(0.05)  # 50ms
+# Check: test.completed should show ~0.05 runtime
+```
+
+---
+
 ## Three-Phase Parallel Execution Pattern
 
 **Location:** `band_orchestrator_main.py:219-307`

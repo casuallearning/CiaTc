@@ -1,6 +1,6 @@
 # Technical Documentation Index
 
-**Last Updated:** November 8, 2025 (Updated 2:10pm - Added Band Statusline Shell Scripts)
+**Last Updated:** November 8, 2025 (Updated 1:37pm - Statusline Integration Documentation)
 
 ## Document Overview
 
@@ -82,6 +82,13 @@
 - Performance Optimization (lazy evaluation, stride iteration, buffer limits)
 
 ### Recent Activity
+- **2025-11-08:** Statusline Integration Documentation & Claude Code Features
+  - Updated Scripts.md narrative with Claude Code statusline integration details
+  - Documented band agent monitoring through `.band_cache/locks/` file system
+  - Documented elapsed time display feature (shows during agent execution)
+  - Documented git branch and process validation features
+  - Updated file_index.md with latest timestamp and changes
+  - Verified statusline time elapsed feature working correctly (user perception fix)
 - **2025-11-08:** Stop Hook Configuration & Git Repository Status Verification
   - Verified Stop hook runs in background mode (band_orchestrator_stop.py:219-314)
   - Confirmed 5 agents running in parallel with agent lock system

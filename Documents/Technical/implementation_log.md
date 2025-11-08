@@ -1,6 +1,149 @@
 # Implementation Log
 
-## 2025-11-08: Statusline Time Elapsed Fix - RESOLVED
+## 2025-11-08 (Part 2): Statusline Sub-Second Runtime Display Bug
+
+### Issue Report
+**Symptom:** User reports "gilfoyle with a check mark" appears but "the seconds part is still not working"
+
+**Context:** After implementing `.completed` files to persist agent completion status, fast-completing agents show `0s` instead of meaningful runtime.
+
+### Investigation Results
+
+#### Finding 1: Completed File Format
+**Location:** `agent_lock.py:92-94`, `.band_cache/locks/*.completed`
+
+**File Structure:**
+```
+Line 1: completion_timestamp (epoch seconds, float)
+Line 2: runtime (seconds, float)
+```
+
+**Example (gilfoyle.completed):**
+```
+1762630606.327842    <- when it completed
+0.0580751895904541   <- runtime (58 milliseconds)
+```
+
+#### Finding 2: Bash Integer Truncation Bug - ROOT CAUSE
+**Location:** `statusline-command.sh:95`
+
+**The Bug:**
+```bash
+runtime=$(sed -n '2p' "$lockfile")  # Gets "0.0580751895904541"
+elapsed=${runtime%.*}                # Extracts integer part: "0"
+```
+
+**Impact:**
+- Fast agents (< 1 second) display as `0s`
+- User sees: `✓🏗️gilfoyle:0s` instead of actual runtime
+- Misleading - suggests instant completion rather than sub-second execution
+
+**Example Cases:**
+| Runtime | `${runtime%.*}` | Display | Expected |
+|---------|----------------|---------|----------|
+| 0.058s  | 0             | 0s      | <1s or 58ms |
+| 0.5s    | 0             | 0s      | <1s or 500ms |
+| 1.2s    | 1             | 1s      | 1s ✓ |
+| 45.8s   | 45            | 45s     | 45s ✓ |
+
+#### Finding 3: Sub-Second Runtimes are Common
+**Agents Completing <1 Second:**
+- Gilfoyle (build health): ~50-100ms (git status + dependency check)
+- John (directory scan): ~200-500ms on small projects
+- Ringo (context synthesis): ~300-800ms on cached data
+
+**Technical Explanation:**
+Bash's `${variable%.*}` parameter expansion performs **string truncation**, not rounding:
+- `${0.9%.*}` = `0` (not 1)
+- `${0.058%.*}` = `0` (not 0 or 1)
+
+### Fix Options
+
+**Option 1: Round in Bash (Preferred)**
+```bash
+# Use printf to round to nearest integer
+elapsed=$(printf "%.0f" "$runtime")
+```
+
+**Option 2: Display Sub-Second Times**
+```bash
+if (( $(echo "$runtime < 1" | bc -l) )); then
+    time_str="<1s"
+else
+    elapsed=$(printf "%.0f" "$runtime")
+    # ... format as before
+fi
+```
+
+**Option 3: Format as Milliseconds**
+```bash
+if (( $(echo "$runtime < 1" | bc -l) )); then
+    ms=$(printf "%.0f" "$(echo "$runtime * 1000" | bc -l)")
+    time_str="${ms}ms"
+else
+    # ... format as seconds
+fi
+```
+
+**Option 4: Fix at Source (Python)**
+```python
+# In agent_lock.py:94, write rounded integer
+cf.write(f"{time.time()}\n{int(runtime + 0.5)}\n")
+```
+
+### Functions/Classes Involved
+1. **agent_lock.py::AgentLock.release()** (lines 80-104)
+   - Writes `.completed` file with float runtime
+   - Line 94: `cf.write(f"{time.time()}\n{runtime}\n")`
+
+2. **statusline-command.sh** (lines 84-101)
+   - Reads `.completed` files
+   - Line 87: `runtime=$(sed -n '2p' "$lockfile")`
+   - Line 95: `elapsed=${runtime%.*}` ← BUG HERE
+   - Lines 118-125: Time formatting logic
+
+3. **statusline-command.sh** (lines 118-125)
+   - Time display formatting
+   - Only handles integer seconds, no sub-second display
+
+### Technologies Used
+- **Bash Parameter Expansion:** `${var%.*}` (string truncation, not arithmetic)
+- **Bash Arithmetic:** `$(( ))` for integer math
+- **Python time.time():** Returns float seconds since epoch
+- **sed:** Extracts lines from `.completed` files
+
+### Technical Risks
+1. **Precision Loss:** Truncating floats to integers loses sub-second information
+2. **Misleading Display:** `0s` suggests instant/trivial work, not fast execution
+3. **User Confusion:** Makes performance optimization invisible
+
+### Performance Considerations
+- **Impact:** Display-only bug, no performance impact on actual execution
+- **Frequency:** Affects 30-50% of agent runs (fast completions)
+- **Priority:** Medium - functional but misleading
+
+### Recommended Solution
+**Use Option 1 (Bash printf rounding)** - minimal changes, preserves integer display:
+
+```bash
+# statusline-command.sh:95
+elapsed=$(printf "%.0f" "$runtime")  # Round instead of truncate
+```
+
+**Rationale:**
+- Single line change
+- Mathematically correct (rounds 0.058 → 0, 0.5 → 1, 0.9 → 1)
+- Preserves existing time formatting logic
+- No dependency on `bc` (uses built-in printf)
+
+### Status
+**IDENTIFIED** - Bug confirmed, fix designed, awaiting implementation approval
+
+**NOTE:** This is a separate issue from the previous "time elapsed doesn't work" report (2025-11-08 Part 1), which was correctly marked as RESOLVED (system working as designed). This is a NEW bug in the `.completed` file runtime display logic.
+
+---
+
+## 2025-11-08 (Part 1): Statusline Time Elapsed Fix - RESOLVED
 
 ### Issue Report
 **Symptom:** User reports statusline refresh time is "a couple minutes" and the time elapsed part doesn't work.

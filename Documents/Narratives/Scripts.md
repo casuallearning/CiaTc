@@ -83,3 +83,9 @@
 - Elapsed time calculation: conversion from Unix timestamps with formatted output for readability
 - Process validation: use of `ps -p` to verify lock file PID still running before displaying
 - Time formatting logic: seconds-only for times < 60s, minutes:seconds format for longer durations
+- **Claude Code statusline command pattern**: statusline-command.sh integrates multiple contexts into single line
+  - Reads JSON input from Claude Code context (model, workspace, version info)
+  - Merges model display, user/host, project directory, git branch status, and band agent activity
+  - Lock file detection: checks .band_cache/locks for *.lock (running) and *.completed files
+  - Agent status display: consolidates running agent count and recently completed agents with elapsed times
+  - Fallback handling: graceful degradation if lock directory doesn't exist or jq parsing fails
