@@ -12,6 +12,13 @@
   - demo_band_statusline.sh: demonstration of statusline output in various agent execution scenarios
   - Visual indicators: emoji-based agent identification for quick recognition
   - Lock file-based agent tracking for lightweight state monitoring
+- **Claude Code statusline integration** (Nov 8, 2025): Integrating band monitoring into Claude Code's native statusline
+  - statusline-command.sh: Advanced statusline script with model info, git branch, and band agent status
+  - Consolidates model display, project context, and real-time agent activity in single statusline
+  - Band agent detection: monitors .band_cache/locks for running/completed agents with emoji indicators
+  - Elapsed time display: shows seconds or minutes:seconds format for agent execution duration
+  - Git integration: displays current branch with modification indicator (*)
+  - Process validation: only shows agents where PID is still alive
 - **GitHub Publication Complete** (Nov 8, 2025): Scripts ready for cross-platform execution
   - Repository published at https://github.com/casuallearning/CiaTc.git
   - All paths converted from hardcoded /Users/philhudson to relative/generic paths
@@ -52,11 +59,14 @@
 - Integration with broader system architecture including Gilfoyle and Marie integration
 - Ensure scripts reflect current agent naming (Gilfoyle instead of build_health)
 - Documentation of Stop hook updates in script narratives
-- Operational transparency: band_statusline.sh integration with Claude Code's statusline configuration
+- **Claude Code statusline integration in progress** (Nov 8, 2025): statusline-command.sh improvements underway
+  - Consolidating band monitoring with model/git/directory context in single display line
+  - Testing band agent status detection via lock file parsing and process validation
+  - Refining elapsed time formatting and emoji-based visual indicators
+  - Integration path: /statusline command invokes statusline-setup agent for PS1 mapping
 - Potential enhancement: statusline integration into primary activation scripts for persistent visibility
 - Future work: extending statusline pattern to Janitor system agents (Marie, Descartes, Feynman)
-- Claude Code statusline configuration: mapping user's shell PS1 configuration to statusline display
-- Statusline setup automation via statusline-setup agent for seamless integration
+- Statusline setup automation via statusline-setup agent for seamless integration with Claude Code native feature
 
 ## Technical Patterns Emerging
 - Shell script orchestration patterns with agent lineup management
