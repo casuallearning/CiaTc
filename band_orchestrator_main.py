@@ -206,6 +206,16 @@ def main():
                 timeout = decision['timeout']
                 priority = decision['priority']
 
+                # FILTER: UserPromptSubmit only runs immediate-response agents
+                # John, George, Pete, Marie run on Stop hook only
+                ALLOWED_AGENTS = ['paul', 'ringo']
+                filtered = [a for a in agents_to_run if a in ALLOWED_AGENTS]
+
+                if filtered != agents_to_run:
+                    removed = [a for a in agents_to_run if a not in ALLOWED_AGENTS]
+                    print(f"   🚫 Filtered out stop agents: {', '.join(removed)} (run on Stop hook)", file=sys.stderr)
+                    agents_to_run = filtered
+
                 # Check if any agents are already running (from previous Stop hook)
                 from agent_lock import AgentLock
                 running = []

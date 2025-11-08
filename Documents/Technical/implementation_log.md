@@ -1,5 +1,256 @@
 # Implementation Log
 
+## 2025-11-08 (Part 3): Stop Agents Running on UserPromptSubmit - ROOT CAUSE IDENTIFIED
+
+### Issue Report
+**Symptom:** User reports "stop agents getting run on a user prompt submit when I send a message rather than being run on a stop"
+
+**Context:** Stop agents (John, George, Pete, Marie) are designed for background documentation maintenance and should only run on the Stop hook (post-response). Instead, they're executing on UserPromptSubmit (pre-response).
+
+### Investigation Results
+
+#### Finding 1: Hook Configuration is Correct ✅
+**Location:** `~/.claude/settings.json:4-32`
+
+**Hook Configuration:**
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [{
+          "type": "command",
+          "command": "python3 /Users/philhudson/Projects/CiaTc/band_orchestrator_main.py",
+          "timeout": 3000
+        }]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [{
+          "type": "command",
+          "command": "python3 /Users/philhudson/Projects/CiaTc/band_orchestrator_stop.py",
+          "timeout": 3000
+        }]
+      }
+    ]
+  }
+}
+```
+
+**Conclusion:** Hook routing is working correctly - separate scripts for each event.
+
+#### Finding 2: Stop Hook Agent Selection is Correct ✅
+**Location:** `band_orchestrator_stop.py:245`
+
+```python
+# All background documentation and maintenance agents
+agents_to_run = ["john", "george", "pete", "marie"]
+```
+
+**Conclusion:** Stop hook correctly restricts to documentation agents only.
+
+#### Finding 3: UserPromptSubmit Conductor Decision - ROOT CAUSE ❌
+**Location:** `band_orchestrator_main.py:199-246`
+
+**The Problem:**
+```python
+# Line 199: Conductor decides which agents to run
+decision = run_conductor(user_prompt, project_stats)
+
+# Lines 205-246: Whatever Conductor returns gets executed immediately
+agents_to_run = decision['agents']  # <-- CONDUCTOR CAN RETURN ANY AGENTS
+
+# No filtering! Any agents the Conductor returns will run:
+if "john" in agents_to_run:
+    futures['john'] = executor.submit(run_john, cwd, timeout)
+if "george" in agents_to_run:
+    futures['george'] = executor.submit(run_george, user_prompt, cwd, timeout)
+if "pete" in agents_to_run:
+    futures['pete'] = executor.submit(run_pete, user_prompt, cwd, timeout)
+if "paul" in agents_to_run:
+    futures['paul'] = executor.submit(run_paul, user_prompt, timeout)
+if "ringo" in agents_to_run:
+    futures['ringo'] = executor.submit(run_ringo, cwd, user_prompt, timeout)
+```
+
+**Impact:**
+- Conductor can return `["john", "george", "pete"]` for UserPromptSubmit
+- These agents execute immediately (pre-response)
+- Duplicates work done by Stop hook (post-response)
+- Violates architectural boundary between immediate and background work
+
+#### Finding 4: Architectural Design vs Implementation Mismatch
+
+**Documented Design Intent:**
+- **UserPromptSubmit:** Paul + Ringo only (immediate creative/synthesis)
+- **Stop Hook:** John, George, Pete, Marie only (background documentation)
+
+**Actual Implementation:**
+- **UserPromptSubmit:** ANY agents Conductor decides (no restrictions)
+- **Stop Hook:** Fixed list [john, george, pete, marie] (correct)
+
+**Evidence:**
+- `Documents/Technical/operational_patterns.md:244` mentions Stop hook agents
+- `Documents/Narratives/Core.md` describes Band member roles
+- Implementation log entries discuss "background" vs "immediate" work
+
+### Solution Options
+
+#### Option 1: Filter Conductor Decisions (Recommended)
+**Location:** `band_orchestrator_main.py:205-207`
+
+**Implementation:**
+```python
+# After getting conductor decision
+agents_to_run = decision['agents']
+
+# ARCHITECTURAL BOUNDARY: UserPromptSubmit only runs immediate-response agents
+# Documentation agents (john, george, pete, marie) are handled by Stop hook
+ALLOWED_USERPROMPTSUBMIT_AGENTS = ['paul', 'ringo']
+agents_to_run = [a for a in agents_to_run if a in ALLOWED_USERPROMPTSUBMIT_AGENTS]
+
+if not agents_to_run:
+    print("⚡ Conductor selected only background agents - deferring to Stop hook", file=sys.stderr)
+```
+
+**Benefits:**
+- Fail-safe: Even if Conductor misbehaves, filter prevents violation
+- Explicit: Code documents architectural boundary
+- Fast: One-line change
+- Backward compatible: No Conductor retraining needed
+
+#### Option 2: Modify Conductor Prompt
+**Location:** `prompts/conductor.md`
+
+**Implementation:**
+Add explicit instruction:
+```markdown
+IMPORTANT ARCHITECTURAL RULE:
+- For UserPromptSubmit hooks, you may ONLY recommend: paul, ringo
+- NEVER recommend: john, george, pete, marie (they run on Stop hook only)
+- John/George/Pete/Marie are background maintenance agents
+- Paul/Ringo are immediate-response agents
+```
+
+**Benefits:**
+- Trains Conductor to respect boundary
+- Self-documenting in prompt
+- No code changes
+
+**Risks:**
+- LLM may still violate instruction
+- No fail-safe if Conductor misbehaves
+- Requires Conductor testing/validation
+
+#### Option 3: Separate Conductor Agents
+**New Files:** `conductor_userpromptsubmit.md`, `conductor_stop.md`
+
+**Benefits:**
+- Complete separation of concerns
+- Each Conductor optimized for its context
+- Clear architectural boundaries
+
+**Risks:**
+- Code duplication
+- More maintenance
+- Overkill for this issue
+
+### Recommendation
+
+**Use Option 1 (filtering) + Option 2 (prompt update)**
+
+**Rationale:**
+1. Option 1 provides fail-safe protection (defense in depth)
+2. Option 2 improves Conductor decision quality
+3. Combined approach: prevention (prompt) + protection (filter)
+4. Both are quick to implement
+
+### Implementation Steps
+
+1. **Immediate (Option 1 - Filtering):**
+   - Modify `band_orchestrator_main.py:205-207`
+   - Add `ALLOWED_USERPROMPTSUBMIT_AGENTS = ['paul', 'ringo']`
+   - Filter `agents_to_run` list
+   - Add logging when background agents filtered out
+
+2. **Follow-up (Option 2 - Prompt):**
+   - Modify `prompts/conductor.md`
+   - Add architectural boundary rule
+   - Document agent categories (immediate vs background)
+   - Test Conductor decisions on sample prompts
+
+### Functions/Classes Involved
+
+1. **band_orchestrator_main.py::main()** (lines 169-290)
+   - Entry point for UserPromptSubmit hook
+   - Line 199: Calls `run_conductor()`
+   - Lines 205-207: Uses Conductor decision (NO FILTERING - BUG)
+   - Lines 237-246: Executes selected agents
+
+2. **conductor_agent.py::run_conductor()** (lines 15-132)
+   - Semantic analysis of user prompt
+   - Returns agent selection in `agents_to_run` field
+   - NO RESTRICTIONS on which agents can be returned
+
+3. **band_orchestrator_stop.py::main()** (lines 219-314)
+   - Entry point for Stop hook
+   - Line 245: Fixed list `["john", "george", "pete", "marie"]` (correct)
+   - Runs background documentation agents
+
+### Technologies Used
+- **Python:** Conditional filtering, list comprehensions
+- **Haiku LLM:** Conductor decision-making (in conductor_agent.py)
+- **Hook System:** Claude Code's UserPromptSubmit vs Stop event routing
+
+### Technical Risks
+
+1. **Risk:** Filtering too aggressive, prevents legitimate use cases
+   - **Mitigation:** Document why john/george/pete/marie shouldn't run on UserPromptSubmit
+   - **Mitigation:** Provide override mechanism if needed
+
+2. **Risk:** Conductor learns to work around filter
+   - **Mitigation:** Prompt explicitly documents restriction
+   - **Mitigation:** Monitor Conductor decisions for compliance
+
+3. **Risk:** Breaking change if existing workflows depend on current behavior
+   - **Mitigation:** Review git history to see if current behavior is intentional
+   - **Mitigation:** Add feature flag to enable/disable filtering
+
+### Performance Considerations
+
+**Before Fix:**
+- UserPromptSubmit: 5 agents (john, george, pete, paul, ringo)
+- Stop: 4 agents (john, george, pete, marie)
+- **Total:** 9 agent executions per message (duplicates!)
+
+**After Fix:**
+- UserPromptSubmit: 2 agents max (paul, ringo)
+- Stop: 4 agents (john, george, pete, marie)
+- **Total:** 6 agent executions per message
+- **Improvement:** 33% reduction in agent runs
+
+### Related Issues
+
+**Issue:** Agents timeout or behave weirdly on meta-prompts
+- **Analysis:** Running all 5 agents on UserPromptSubmit extends execution time
+- **Impact:** With fix, UserPromptSubmit runs faster (only paul + ringo)
+- **Related:** implementation_log.md:1277-1445 (timeout requirements)
+
+### Status
+**IDENTIFIED** - Root cause confirmed, solution designed, awaiting implementation approval
+
+### Files Requiring Modification
+1. `band_orchestrator_main.py` (lines 205-207) - Add filtering
+2. `prompts/conductor.md` - Add architectural boundary documentation
+
+### Cross-References
+- See `technical_patterns.md` - Hook orchestration patterns
+- See `implementation_log.md:442-506` - Original Stop hook design intent
+- See `operational_patterns.md:244` - Stop hook operational details
+
+---
+
 ## 2025-11-08 (Part 2): Statusline Sub-Second Runtime Display Bug
 
 ### Issue Report
