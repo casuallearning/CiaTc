@@ -46,6 +46,8 @@
 - Operational transparency: band_statusline.sh integration with Claude Code's statusline configuration
 - Potential enhancement: statusline integration into primary activation scripts for persistent visibility
 - Future work: extending statusline pattern to Janitor system agents (Marie, Descartes, Feynman)
+- Claude Code statusline configuration: mapping user's shell PS1 configuration to statusline display
+- Statusline setup automation via statusline-setup agent for seamless integration
 
 ## Technical Patterns Emerging
 - Shell script orchestration patterns with agent lineup management

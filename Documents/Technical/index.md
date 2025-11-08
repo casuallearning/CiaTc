@@ -1,13 +1,13 @@
 # Technical Documentation Index
 
-**Last Updated:** November 8, 2025
+**Last Updated:** November 8, 2025 (Updated 2:10pm - Added Band Statusline Shell Scripts)
 
 ## Document Overview
 
 ### Core Documentation
 | Document | Category | Lines | Description |
 |----------|----------|-------|-------------|
-| `technical_patterns.md` | Patterns | 700+ | Design patterns for Conductor, SmartOrchestrator, locking, execution, error handling, performance optimization |
+| `technical_patterns.md` | Patterns | 1050+ | Design patterns for Conductor, SmartOrchestrator, locking, execution, error handling, performance optimization, Band statusline |
 | `dependencies.md` | Infrastructure | 650+ | Conductor, Smart Orchestrator, Agent Lock System, Build Health Monitor, all dependencies, libraries, frameworks |
 | `architectural_patterns.md` | Architecture | 900+ | Conductor system architecture, Smart Orchestrator caching, agent locks, hook system, multi-agent orchestration, Swift/iOS patterns |
 | `operational_patterns.md` | Operations | 780+ | Smart orchestration runtime patterns, caching, locking, phase-based execution, adaptive timeouts, monitoring, quality management |
