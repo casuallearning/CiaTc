@@ -12,6 +12,10 @@
   - demo_band_statusline.sh: demonstration of statusline output in various agent execution scenarios
   - Visual indicators: emoji-based agent identification for quick recognition
   - Lock file-based agent tracking for lightweight state monitoring
+- **GitHub Publication Phase**: Preparing scripts for cross-platform, user-independent execution
+  - Path conversion from hardcoded /Users/philhudson to relative/generic paths
+  - Ensuring all shell scripts work on any machine without user-specific configuration
+  - Validation of activation/deactivation scripts with new path references
 
 ## Key Decisions Made
 - Created activation script for different framework modes (band, janitors, full) with updated agent lineup
@@ -26,6 +30,10 @@
 - Decision to monitor lock files in .band_cache/locks for lightweight agent state tracking
 - Visual design choice: emoji-based agent indicators for quick identification in statusline
 - Created demonstration script to show statusline behavior in various agent execution scenarios
+- **GitHub Publication Decision**: All scripts converted to use relative paths via `$(cd "$(dirname "$0")" && pwd)` pattern
+  - Scripts now work on any machine without user-specific configuration changes
+  - Cross-platform support: paths work across Linux, macOS, and other Unix-like systems
+  - Project root detection via script location enables dynamic configuration
 
 ## Problems Being Solved
 - Simplifying user interaction with complex multi-agent system

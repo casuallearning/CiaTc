@@ -126,6 +126,18 @@ class SmartOrchestrator:
         """
         changed = set()
 
+        # FAST PATH: Check if project root mtime changed
+        # If no directory changes, skip full scan (massive speedup!)
+        project_mtime = self.project_root.stat().st_mtime
+        last_scan_time = self.cache.get("last_scan_mtime", 0)
+
+        if project_mtime <= last_scan_time:
+            # No directory changes, return empty (or last known changes)
+            return changed
+
+        # Update scan time
+        self.cache["last_scan_mtime"] = project_mtime
+
         # Scan project files
         for file_path in self.project_root.rglob("*"):
             if not file_path.is_file():
