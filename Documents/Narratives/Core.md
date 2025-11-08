@@ -3,6 +3,7 @@
 ## Recent Milestones
 - **GitHub Repository Published** (Nov 8, 2025): CiaTc framework now public at https://github.com/casuallearning/CiaTc.git
 - **Timestamp Performance Issue Identified** (Nov 8, 2025): Despite implementing timestamp-based change detection, agents still regenerating on every invocation (evidence: statusline screenshot showing all agents at 0s simultaneously)
+- **Stop Hook Configuration Fixed** (Nov 8, 2025): Identified and fixed Conductor agent filtering issue preventing stop agents from being correctly excluded on UserPromptSubmit hook
 
 ## Main Conversation Themes
 - Development of a multi-agent critique and analysis system with two-phase architecture: Band (pre-response) and Janitors (post-response)
@@ -107,6 +108,10 @@
   - Current behavior: George and other agents running on EVERY invocation despite timestamp checks
   - Root cause investigation needed: Are mtime comparisons failing? Are checks being bypassed?
   - Impact: ~300x performance penalty - agents regenerating unchanged documentation repeatedly
+- **Conductor agent selection filtering**: Conductor was incorrectly selecting agents marked as "stop" agents (john, george, pete) on UserPromptSubmit hook
+  - Root cause: Filter condition was inverted/incorrect, causing agents with "stop" role to be selected instead of excluded
+  - Fix implemented: Corrected filter logic in conductor_agent.py to properly exclude stop agents
+  - Status: Fix committed, awaiting validation in next execution cycle
 
 ## Direction of Work
 - Building comprehensive AI orchestration system with Band (pre-response) and Janitors (post-response) phases - now with Feynman simplicity principle embedded
@@ -114,6 +119,10 @@
 - Integration of janitor post-response critique system into hook orchestration workflow with Marie as active agent
 - Streamlining orchestration for efficiency and clarity with performance optimization
 - Framework in advanced operational phase with focus on stability and optimization
+- **COMPLETED: Fix Conductor agent selection filtering**
+  - Conductor was selecting john/george/pete on UserPromptSubmit when it should only select ringo/marie/etc
+  - Filter logic corrected and committed
+  - Next: Validate fix is working by observing that only correct agents run on UserPromptSubmit
 - **PRIORITY: Fix SmartOrchestrator initialization bottleneck**
   - Implement directory mtime fast-path in SmartOrchestrator.scan_project() to skip full hashing on unchanged projects
   - Expected result: eliminate 1+ minute delay on unchanged projects (near-instant on cached state)

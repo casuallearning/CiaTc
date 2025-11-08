@@ -50,7 +50,14 @@ This index tracks all narrative documents maintained by George (the Narrative Ma
 
 ---
 
-**Last Updated:** November 8, 2025 - 20:32 PM
+**Last Updated:** November 8, 2025 - 22:42 PM
+- **Conductor agent selection filter fixed** (Nov 8, 2025): Corrected filter logic to properly exclude stop agents on UserPromptSubmit
+- Core.md: Added Stop Hook Configuration milestone
+- Core.md: Documented conductor filter fix in Problems section with root cause and status
+- Core.md: Updated Direction of Work to mark conductor fix as COMPLETED and refocus on SmartOrchestrator bottleneck
+- Narrative documents current with conductor filter fix and prioritized optimization tasks
+
+**Previous update:** November 8, 2025 - 20:32 PM
 - **Claude Code statusline integration underway** (Nov 8, 2025): statusline-command.sh improvements for band monitoring
 - Scripts.md: Added Claude Code statusline integration details to Main Conversation Themes
 - Scripts.md: Updated Direction of Work with current statusline-command.sh development activities
