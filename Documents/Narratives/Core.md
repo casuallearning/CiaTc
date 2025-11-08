@@ -101,6 +101,7 @@
   - band_statusline.sh monitors lock files for active agent detection
   - Integration with Claude Code's statusline feature for persistent visibility during long operations
   - Emoji-based visual indicators for quick agent identification
+  - Claude Code statusline configuration: mapping user's shell PS1 configuration to statusline display via statusline-setup agent
 - Paul's architectural input being sought on orchestrator design and optimization opportunities
 - Paul's evolution: Feynman thinking now core to wild ideas - all architectures must be explainable simply
 - Gilfoyle health agent fully integrated in Phase 1 parallel execution (renamed from build_health)

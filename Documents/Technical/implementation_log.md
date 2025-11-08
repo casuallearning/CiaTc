@@ -1,5 +1,152 @@
 # Implementation Log
 
+## 2025-11-08: Band Statusline Runtime Display Issue Investigation
+
+### Issue Report
+**Symptom:** Agent runtime displays show "0s" or "0" for all running agents in the statusline, despite agents actively executing.
+
+**Root Cause Analysis:**
+
+#### 1. Lock File Lifecycle Problem
+**Issue:** Lock files are created/deleted immediately, not persisted during agent execution
+- **Expected behavior:** Lock file exists during entire agent execution (agent_lock.py:60-62)
+  ```python
+  # Write PID and timestamp to lock file
+  self.fd.write(f"{os.getpid()}\n{time.time()}\n")
+  self.fd.flush()
+  ```
+- **Actual behavior:** Lock files removed immediately after agent completes (agent_lock.py:86-88)
+  ```python
+  # Remove lock file
+  if self.lock_file.exists():
+      self.lock_file.unlink()
+  ```
+- **Impact:** Statusline script (band_statusline.sh:17-57) finds no lock files to read
+
+#### 2. Timing Issue
+**Observation:** Statusline updates after each message completes
+- **Expected:** Real-time updates during agent execution
+- **Actual:** Updates only occur after agents finish and release locks
+- **Cause:** Lock cleanup happens before statusline refresh
+
+#### 3. Implementation Gap
+**band_statusline.sh expectations vs reality:**
+
+| Expected (lines 21-30) | Actual Behavior |
+|------------------------|-----------------|
+| Lock files persist during execution | Lock files deleted on agent completion |
+| `ps -p "$pid"` validates running process | Process already finished when check runs |
+| Timestamp allows elapsed time calculation | No timestamp available (file deleted) |
+| Multiple agents show concurrent execution | All agents complete before statusline reads |
+
+#### 4. Timestamp Format Issue (Potential)
+**band_statusline.sh:23-30:**
+```bash
+timestamp=$(tail -1 "$lockfile" 2>/dev/null)
+now=$(date +%s)
+start_time=${timestamp%.*}  # Remove decimal part
+elapsed=$((now - start_time))
+```
+**Concern:** If timestamp is in decimal format (Python's `time.time()` = 1762628804.123), bash arithmetic may truncate incorrectly, resulting in 0-second calculations.
+
+### Technical Details
+
+**Functions Involved:**
+- `agent_lock.py::AgentLock.acquire()` (lines 33-63) - Creates lock with PID and timestamp
+- `agent_lock.py::AgentLock.release()` (lines 79-90) - Removes lock file
+- `band_statusline.sh` (lines 17-57) - Reads lock files and calculates elapsed time
+- `band_orchestrator_main.py::run_john/george/pete/paul/ringo()` - Execute agents with lock context manager
+
+**Lock File Structure:**
+```
+Line 1: PID (e.g., "12345")
+Line 2: Unix timestamp (e.g., "1762628804.123456")
+```
+
+**Statusline Script Logic:**
+1. Scan `.band_cache/locks/*.lock`
+2. Read PID from line 1, timestamp from line 2
+3. Check if PID is running via `ps -p "$pid"`
+4. Calculate `elapsed = current_time - start_time`
+5. Format and display
+
+### Technologies Used
+- **Python:** fcntl file locking, time.time() for timestamps
+- **Bash:** File I/O, process monitoring (ps), date arithmetic
+- **File System:** Lock files in `.band_cache/locks/`
+
+### Implementation Approaches
+
+**Current Pattern:**
+```python
+with agent_lock("john", skip_if_locked=True) as lock:
+    if lock:
+        result = run_john()  # Lock held during execution
+    # Lock released/deleted here automatically
+```
+
+**Problem:** Lock deletion happens in `__exit__` method before statusline refresh
+
+### Technical Risks and Debt
+
+**Risk 1: Race Condition**
+- Lock file deleted before statusline reads it
+- Results in missing or "0s" runtime display
+
+**Risk 2: Truncation in Time Calculation**
+```bash
+start_time=${timestamp%.*}  # "1762628804.123" → "1762628804"
+```
+If timestamp is not properly parsed, could result in 0 or incorrect elapsed time.
+
+**Risk 3: Process Completion Speed**
+- Fast-executing agents (<100ms) complete before statusline refreshes
+- Lock already released when statusline checks
+
+### Performance Considerations
+
+**Lock File I/O:**
+- Write: <1ms (agent_lock.py:60-62)
+- Read: <1ms per file (band_statusline.sh:22-23)
+- Delete: <1ms (agent_lock.py:88)
+
+**Statusline Refresh Rate:**
+- Claude Code: 1-2 Hz (every 500-1000ms)
+- Agent execution: Often <500ms for simple tasks
+- **Result:** Lock files often deleted before first statusline refresh
+
+### Recommended Investigation Steps
+
+1. **Add debug logging to agent_lock.py:**
+   - Log when lock acquired with timestamp
+   - Log when lock released with duration
+   - Verify lock file persists during execution
+
+2. **Test with long-running agent:**
+   - Force agent to sleep for 5-10 seconds
+   - Verify statusline shows runtime during sleep
+   - Confirms lock file persistence logic
+
+3. **Check timestamp format:**
+   - Verify Python writes decimal timestamp
+   - Verify Bash correctly parses decimal timestamp
+   - Test elapsed time calculation with synthetic lock file
+
+4. **Monitor lock directory:**
+   ```bash
+   watch -n 0.1 'ls -la .band_cache/locks/ && ./band_statusline.sh'
+   ```
+   - Observe lock file creation/deletion timing
+   - Confirm statusline sees files during execution
+
+### Related Files
+- `agent_lock.py` - Lock management implementation
+- `band_statusline.sh` - Statusline display logic
+- `band_orchestrator_main.py` - Agent execution orchestration
+- `.band_cache/locks/` - Lock file storage directory
+
+---
+
 ## 2025-11-08: Band Statusline Shell Scripts Documentation
 
 ### Context

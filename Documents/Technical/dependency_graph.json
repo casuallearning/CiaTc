@@ -1,1 +1,69 @@
-{}
+{
+  "band_orchestrator_main.py": {
+    "imports": [
+      "json",
+      "sys",
+      "subprocess",
+      "pathlib",
+      "os",
+      "time",
+      "functools",
+      "concurrent",
+      "smart_orchestrator",
+      "conductor_agent",
+      "agent_lock",
+      "agent_lock",
+      "traceback"
+    ],
+    "definitions": [
+      {
+        "name": "timed",
+        "line": 26,
+        "type": "function"
+      },
+      {
+        "name": "wrapper",
+        "line": 29,
+        "type": "function"
+      },
+      {
+        "name": "run_claude",
+        "line": 37,
+        "type": "function"
+      },
+      {
+        "name": "run_john",
+        "line": 72,
+        "type": "function"
+      },
+      {
+        "name": "run_george",
+        "line": 90,
+        "type": "function"
+      },
+      {
+        "name": "run_pete",
+        "line": 106,
+        "type": "function"
+      },
+      {
+        "name": "run_paul",
+        "line": 128,
+        "type": "function"
+      },
+      {
+        "name": "run_ringo",
+        "line": 143,
+        "type": "function"
+      },
+      {
+        "name": "main",
+        "line": 161,
+        "type": "function"
+      }
+    ],
+    "calls": [],
+    "language": "python",
+    "signature_changes": []
+  }
+}
