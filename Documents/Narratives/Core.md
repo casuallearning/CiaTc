@@ -55,6 +55,8 @@
 - Marie activated as primary maintenance agent with Janitor orchestration responsibilities
 - Updated Stop hook with new agent lineup and naming conventions
 - Legacy Janitor prompts archived to maintain clean, trackable project history
+- Marie granted broad organizational authority: proactive file reorganization, cleanup, and structure improvements
+- Philosophy established: if Marie's changes temporarily break something, that's feedback on poor initial placement by main agent
 
 ## Problems Being Solved
 - Need for systematic AI response quality control through multi-perspective analysis
@@ -94,6 +96,8 @@
 - Stop hook system updated with new agent lineup reflecting philosophical alignment
 - Future enhancement: evaluation of janitor critique results integration into Band learning/improvement cycles
 - Legacy system cleanup: archiving old Janitor prompts while maintaining project history
+- Empowering Marie with aggressive organizational authority: proactive restructuring, file movement, and cleanup without permission
+- Establishing feedback loop: temporary breakage from Marie's reorganization indicates poor initial placement decisions
 
 ## Technical Patterns Emerging
 - Two-phase orchestration: Band (pre-response) → Response → Janitors (post-response)

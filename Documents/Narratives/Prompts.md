@@ -17,6 +17,8 @@
 - Marie elevated to active maintenance agent with explicit organizational responsibilities
 - Legacy Janitor prompts archived for clean project history
 - Created prompts/marie_active.md: explicit active maintenance and organizational review responsibilities for Marie
+- Marie's authority expanded: proactive file reorganization, cleanup, and structural improvements without prior approval
+- Established governance philosophy: Marie can break things temporarily; breakage indicates poor initial placement
 
 ## Problems Being Solved
 - Need for systematic multi-perspective analysis
@@ -31,6 +33,8 @@
 - Paul's prompts evolving to embed Feynman simplicity principle as core validation mechanism
 - Marie's prompts strengthening organizational and maintenance responsibilities
 - Maintaining clean prompt history through archival of legacy versions
+- Expanding Marie's authority to include aggressive proactive organizational interventions
+- Establishing feedback mechanism: temporary breakage from reorganization indicates placement issues
 
 ## Technical Patterns Emerging
 - Persona-based prompt engineering with philosophical constraints

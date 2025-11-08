@@ -55,3 +55,5 @@ This index tracks all narrative documents maintained by George (the Narrative Ma
 - New technical documentation files added: architectural_patterns.md and operational_patterns.md
 - prompts/marie_active.md added to Prompts category
 - Narratives reflect current system state across all categories
+- Organizational governance theme added: Marie granted expanded authority for proactive project structure improvements
+- Philosophy established: temporary breakage from Marie's reorganization indicates poor initial placement decisions
