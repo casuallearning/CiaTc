@@ -156,8 +156,9 @@
 - PaulsLaboratory/VanGoghFractalDemo.playground/Contents.swift - Swift playground demo for Van Gogh fractals
 - PaulsLaboratory/VanGoghFractalDemo.playground/contents.xcplayground - Playground configuration file
 
-**Last Updated**: November 8, 2025 - File index refreshed to current state
-- All project files verified and current across all categories
-- prompts/marie_active.md added to active prompts
-- Documents/Technical/architectural_patterns.md and operational_patterns.md added to technical documentation
-- Directory structure stable with 120+ project files organized across core, tests, scripts, documentation, and iOS applications
+**Last Updated**: November 8, 2025 - File index updated
+- Updated narrative documentation files (Documentation.md, Technical.md, Prompts.md)
+- Updated narrative index (narrative_index.md)
+- Updated dependency graph (dependency_graph.json)
+- Cache files updated (.band_cache/file_hashes.json, orchestrator_cache.json)
+- All 130+ project files verified and organized across core, tests, scripts, documentation, and iOS applications
