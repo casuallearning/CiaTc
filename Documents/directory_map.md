@@ -17,7 +17,9 @@ CiaTc/
 ├── Shell Scripts
 │   ├── activate_ciatc_final.sh           # Activate CiaTc framework
 │   ├── deactivate_ciatc_final.sh         # Deactivate CiaTc framework
-│   └── activate_smart_band.sh            # Activate smart band mode
+│   ├── activate_smart_band.sh            # Activate smart band mode
+│   ├── band_statusline.sh                # Band statusline monitor script
+│   └── demo_band_statusline.sh           # Demo of Band statusline capabilities
 │
 ├── Testing
 │   ├── test_band_debug.py                # Band orchestrator debugging
@@ -192,8 +194,9 @@ CiaTc/
 **Documentation**: Comprehensive narrative and technical documentation system
 **Cache System**: Intelligent caching for performance optimization
 
-**Total Files**: 130+ files organized across 9 major categories
-**Main Languages**: Python, Swift, Markdown
+**Total Files**: 140+ files organized across 9 major categories
+**Main Languages**: Python, Swift, Markdown, Shell Scripts
 **iOS Applications**: 2 active projects (FractalPaintingCompiler, QuantumProductivityApp)
+**Statusline Monitoring**: Band orchestrator with real-time performance metrics
 
-**Last Updated**: November 8, 2025
+**Last Updated**: November 8, 2025 - Added statusline monitoring scripts
