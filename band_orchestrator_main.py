@@ -71,7 +71,7 @@ def run_claude(prompt, model="sonnet", timeout_seconds=600, working_dir=None):
 @timed
 def run_john(cwd, timeout):
     """John: Directory mapper and file indexer"""
-    prompt_file = Path("/Users/philhudson/Projects/CiaTc/prompts/john.md")
+    prompt_file = Path(__file__).parent / "prompts" / "john.md"
 
     if prompt_file.exists():
         with open(prompt_file, 'r') as f:
@@ -89,7 +89,7 @@ If they exist, update them based on current structure."""
 @timed
 def run_george(user_prompt, cwd, timeout):
     """George: Narrative manager"""
-    prompt_file = Path("/Users/philhudson/Projects/CiaTc/prompts/george.md")
+    prompt_file = Path(__file__).parent / "prompts" / "george.md"
 
     if prompt_file.exists():
         with open(prompt_file, 'r') as f:
@@ -105,7 +105,7 @@ def run_george(user_prompt, cwd, timeout):
 @timed
 def run_pete(user_prompt, cwd, timeout):
     """Pete: Technical documentation"""
-    prompt_file = Path("/Users/philhudson/Projects/CiaTc/prompts/pete.md")
+    prompt_file = Path(__file__).parent / "prompts" / "pete.md"
 
     # Extract code if present
     code = ""
@@ -127,7 +127,7 @@ def run_pete(user_prompt, cwd, timeout):
 @timed
 def run_paul(user_prompt, timeout):
     """Paul: Wild ideas - INDEPENDENT"""
-    prompt_file = Path("/Users/philhudson/Projects/CiaTc/prompts/paul.md")
+    prompt_file = Path(__file__).parent / "prompts" / "paul.md"
 
     if prompt_file.exists():
         with open(prompt_file, 'r') as f:
@@ -136,13 +136,13 @@ def run_paul(user_prompt, timeout):
     else:
         prompt = f"Give one wild but potentially brilliant idea for: {user_prompt}"
 
-    return run_claude(prompt, timeout_seconds=timeout)
+    return run_claude(prompt, model="opus", timeout_seconds=timeout)
 
 
 @timed
 def run_ringo(cwd, user_prompt, timeout):
     """Ringo: Context synthesizer - RUNS LAST, DEPENDS ON JOHN & GEORGE"""
-    prompt_file = Path("/Users/philhudson/Projects/CiaTc/prompts/ringo.md")
+    prompt_file = Path(__file__).parent / "prompts" / "ringo.md"
 
     project_name = Path(cwd).name
 

@@ -69,7 +69,7 @@ def run_claude(prompt, model="haiku", timeout_seconds=600, working_dir=None):
 def run_john(cwd, transcript_path, timeout):
     """John: Directory mapper and file indexer"""
 
-    prompt_file = Path("/Users/philhudson/Projects/CiaTc/prompts/john.md")
+    prompt_file = Path(__file__).parent / "prompts" / "john.md"
 
     if prompt_file.exists():
         with open(prompt_file, 'r') as f:
@@ -88,7 +88,7 @@ If they exist, update them based on current structure."""
 def run_george(user_prompt, transcript_path, cwd, timeout):
     """George: Narrative manager"""
 
-    prompt_file = Path("/Users/philhudson/Projects/CiaTc/prompts/george.md")
+    prompt_file = Path(__file__).parent / "prompts" / "george.md"
 
     # Get last few transcript lines for context
     context = ""
@@ -116,7 +116,7 @@ def run_george(user_prompt, transcript_path, cwd, timeout):
 def run_pete(user_prompt, cwd, timeout):
     """Pete: Technical documentation"""
 
-    prompt_file = Path("/Users/philhudson/Projects/CiaTc/prompts/pete.md")
+    prompt_file = Path(__file__).parent / "prompts" / "pete.md"
 
     # Extract code if present
     code = ""
@@ -140,8 +140,9 @@ def run_gilfoyle(cwd):
     """Gilfoyle: Build health and dependency monitoring (the cynical systems architect)"""
 
     try:
+        gilfoyle_path = Path(__file__).parent / "gilfoyle_agent.py"
         result = subprocess.run(
-            ['python3', '/Users/philhudson/Projects/CiaTc/gilfoyle_agent.py', cwd],
+            ['python3', str(gilfoyle_path), cwd],
             capture_output=True,
             text=True,
             timeout=30
@@ -158,7 +159,7 @@ def run_gilfoyle(cwd):
 @timed
 def run_marie(cwd, timeout):
     """Marie: Active project maintenance (tidying, git operations, cleanup)"""
-    prompt_file = Path("/Users/philhudson/Projects/CiaTc/prompts/marie_active.md")
+    prompt_file = Path(__file__).parent / "prompts" / "marie_active.md"
 
     if prompt_file.exists():
         with open(prompt_file, 'r') as f:

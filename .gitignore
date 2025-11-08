@@ -3,24 +3,37 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.egg-info/
+dist/
+build/
 
-# Band cache (runtime state)
+# Band cache (runtime state, user-specific)
 .band_cache/
+*.lock
 
 # Temporary files
 /tmp/
 *.tmp
 *.log
+performance_results.json
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-*
 
 # OS
 .DS_Store
 Thumbs.db
+*.bak
+
+# User-specific settings (don't share your hook config)
+.claude/settings.local.json
 
 # Janitor critiques (temporary)
 /tmp/janitor_critique.md
+
+# Test outputs
+test_output/
