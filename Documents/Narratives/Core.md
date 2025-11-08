@@ -1,0 +1,121 @@
+# Core Narrative - CiaTc Framework
+
+## Main Conversation Themes
+- Development of a multi-agent critique and analysis system with two-phase architecture: Band (pre-response) and Janitors (post-response)
+- Implementation of Band orchestrator (John, George, Pete, Paul, Ringo) for pre-response analysis
+- Implementation of Janitor orchestrator (Marie, Descartes, Feynman) for post-response critique with Marie as active maintenance agent
+  - Marie: active organizational review and cleanup
+  - Descartes: assumption validation and methodical scrutiny
+  - Feynman: simplicity advocacy and clarity checking
+- Framework for prompt-based AI collaboration patterns with philosophical validation
+- Optimization and cleanup of Claude hook orchestration systems for performance
+- Selective agent output filtering with careful balance between feedback quality and context overhead
+- Paul's experimental development: bio-inspired app architecture leveraging slime mold algorithms and quantum UI patterns
+- Paul's design philosophy: Feynman simplicity principle - can we explain complex architectures simply?
+- Gilfoyle health monitoring agent integration into Band orchestrator Phase 1 parallel execution (formerly build_health_agent)
+- Dependency mapping and maintenance as critical framework infrastructure
+- Performance optimization strategy: prioritizing request efficiency over token efficiency (Claude Max x20 subscription model)
+- Timestamp-based change detection to prevent unnecessary regeneration (estimated ~300x speedup for unchanged projects)
+- WaggleDanceCompiler.swift implementation for waggle dance pattern processing in Core
+- Bootstrap initialization system for Band orchestrator (bootstrap_band.py)
+- Code simplification initiative: removing complex recursion guard logic to improve maintainability and debuggability
+- Janitor hook implementation: post-response critique system that processes all responses through philosophical frameworks
+- Recursive janitor processing: band_orchestrator output is captured and fed through janitor critique system
+- Integration of janitor critique results for knowledge improvement
+- Agent naming evolution: build_health renamed to Gilfoyle for clarity and philosophical alignment
+- Stop hook updated with new agent lineup reflecting system architecture changes
+- Archive of legacy Janitor prompts to maintain clean project history
+
+## Key Decisions Made
+- Separated analysis into "Band" (John, George, Pete, Paul, Ringo) and "Janitors" (Marie, Descartes, Feynman)
+- Created modular prompt loading system for scalability
+- Established clear role definitions for each AI persona
+- Decision to streamline hook output, user requests Paul's output to be included alongside Ringo
+- Investigation into hook output chaining patterns in orchestrator scripts
+- Band orchestrator output filtering - keeping agent functionality while removing context noise
+- Framework now fully operational with parallel agent execution (John & George)
+- Successful validation of event JSON formatting and orchestrator response patterns
+- Implementation of controlled timeout testing (15-second limit) for orchestrator reliability
+- System approaching completion phase with successful Paul output integration
+- Paul designated for active experimental development within strict laboratory boundaries
+- Paul's "wild ideas" to incorporate Feynman-style thinking: can we explain it simply? (Updated to core philosophy)
+- Gilfoyle health agent integrated directly into Band (Phase 1) rather than separate hook - runs parallel with John & George
+- User agreement on proposed architecture for Band/Janitor system with philosophical validation
+- Recognition that dependency mapping must be maintained as core infrastructure concern
+- Systematic review of Gilfoyle requirements vs current implementation to identify enhancement opportunities
+- George's output is silently processed (runs in parallel Phase 1) but not displayed in Band report - only updates narrative documents
+- Implemented recursion guard in band_orchestrator_main.py to detect and prevent infinite subprocess loops (CIATC_SUBPROCESS environment variable)
+- Transitioned from sequential to parallel execution for Phase 1 agents using ThreadPoolExecutor with concurrent.futures
+- Focus on measuring and optimizing context token consumption after architectural changes
+- Strategic pivot: optimize for request count rather than token consumption given user's Claude Max x20 subscription economics
+- Proposed decorator-based timing pattern for fine-grained performance measurement of individual agent functions
+- Timestamp-based change detection strategy: agents check if their outputs are newer than inputs before regenerating documentation
+- John compares file_index.json mtime against project files; Pete/George compare their output directories against file_index.json mtime
+- Renamed build_health_agent to Gilfoyle for philosophical and naming consistency
+- Marie activated as primary maintenance agent with Janitor orchestration responsibilities
+- Updated Stop hook with new agent lineup and naming conventions
+- Legacy Janitor prompts archived to maintain clean, trackable project history
+
+## Problems Being Solved
+- Need for systematic AI response quality control through multi-perspective analysis
+- Requirement for both pre-response (Band) and post-response (Janitors) critique systems
+- Creating reusable framework for AI collaboration workflows with philosophical validation
+- Hook output redundancy and potential over-processing in orchestrator chains
+- Optimizing agent selection for specific workflow requirements
+- Maintaining agent processing benefits while reducing Claude context overload
+- Framework dependency tracking and architectural visibility for maintainability
+- Enhancing build_health_agent to monitor and respond to build/test failures in development workflow (needs name)
+- Ensuring Paul's wild ideas incorporate Feynman's simplicity principle: can complex architectures be explained simply?
+- Recursion prevention: band orchestrator subprocess invocation and janitor post-response processing
+- Ensuring narrative tracking (George) can access conversation context and transcript path via hook event data
+- Performance bottleneck identification: granular timing data for individual agent execution
+- Unnecessary regeneration overhead: agents regenerating outputs when source files unchanged (wasting ~300x time)
+- Code complexity debt: removing overly-complex recursion prevention logic in favor of clarity
+- Janitor critique system integration: processing orchestrator output through Marie, Descartes, Feynman perspectives
+- Balancing response critique depth against context token overhead
+- Determining optimal janitor critique storage and accessibility (temporary files vs persistent logging)
+
+## Direction of Work
+- Building comprehensive AI orchestration system with Band (pre-response) and Janitors (post-response) phases - now with Feynman simplicity principle embedded
+- Focus on modularity and extensibility of prompt-based agents with philosophical validation
+- Integration of janitor post-response critique system into hook orchestration workflow with Marie as active agent
+- Streamlining orchestration for efficiency and clarity with performance optimization
+- Framework in advanced operational phase with focus on stability and optimization
+- Performance optimization strategy: prioritize request efficiency over token efficiency (Claude Max x20 subscription model)
+- Emphasis on speed and parallelism using concurrent execution patterns
+- Implementing intelligent caching with timestamp-based change detection (~300x speedup potential)
+- Janitor system integration: determining storage strategy for critique output (temp files vs persistent logging)
+- Code simplification initiative: removing complex recursion prevention in favor of maintainability
+- User preference for simple, debuggable code over robust but complex error handling patterns
+- Potential statusline integration for Band execution progress visualization
+- Paul's architectural input being sought on orchestrator design and optimization opportunities
+- Paul's evolution: Feynman thinking now core to wild ideas - all architectures must be explainable simply
+- Gilfoyle health agent fully integrated in Phase 1 parallel execution (renamed from build_health)
+- Stop hook system updated with new agent lineup reflecting philosophical alignment
+- Future enhancement: evaluation of janitor critique results integration into Band learning/improvement cycles
+- Legacy system cleanup: archiving old Janitor prompts while maintaining project history
+
+## Technical Patterns Emerging
+- Two-phase orchestration: Band (pre-response) → Response → Janitors (post-response)
+- Prompt-based agent specialization for focused expertise (Band: analysis; Janitors: critique)
+- Orchestrator pattern for AI coordination with phase-based execution
+- Shell script activation/deactivation for framework modes
+- Modular prompt loading architecture for extensibility
+- Silent agent execution with selective output pattern (George, Pete silent; Band shows summary)
+- Parallel execution of independent agents using ThreadPoolExecutor
+- Standalone script orchestration: agents as separate Python scripts invoked via subprocess
+- Philosophical perspective pattern: Janitors apply domain expertise (organization, methodology, clarity)
+- Hook event data structure: session_id, transcript_path, cwd, hook_event_name, prompt for context
+- Timestamp-based caching: agents check output mtime vs input mtime, return early if fresh (~300x speedup)
+- Structured agent response protocol: JSON status objects for orchestrator coordination ("current", "updated", "error")
+- Janitor critique system: post-response processing through Marie (active cleanup), Descartes (assumptions), Feynman (simplicity)
+- Temporary file-based critique storage: janitor results written to /tmp/janitor_critique.md for next interaction
+- Decorator pattern for performance profiling: @timed wrapper for agent execution timing without code modification
+- Subscription-optimized architecture: Claude Max x20 economics favor Sonnet parallelism over token minimization
+- Status reporting pattern: Band shows phase execution progress with timing information
+- Debug mode as development tool: conditional detailed output via DEBUG_MODE environment variable
+- Bootstrap pattern: automated Band orchestrator initialization via bootstrap_band.py
+- Swift compiler integration: WaggleDanceCompiler.swift for bio-inspired pattern processing
+- Feynman simplicity principle: embedded in Paul's prompt - all wild ideas must be explainable simply
+- Naming convention pattern: agents named after philosophers/personas with roles tied to expertise (Gilfoyle for health monitoring)
+- Prompt archival pattern: legacy prompts archived to maintain clean version history while preserving context
