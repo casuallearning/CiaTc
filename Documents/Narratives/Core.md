@@ -89,6 +89,14 @@
 - Janitor critique system integration: processing orchestrator output through Marie, Descartes, Feynman perspectives
 - Balancing response critique depth against context token overhead
 - Determining optimal janitor critique storage and accessibility (temporary files vs persistent logging)
+- **SmartOrchestrator initialization delay (1+ minutes)**: Full project scan with rglob and MD5 hashing on every orchestrator init
+  - Root cause: Conductor waits for SmartOrchestrator to hash all project files before execution begins
+  - Impact: Users experience long delay before Band response begins
+  - Identified: Directory mtime approach can short-circuit when project unchanged
+- **Statusline real-time updates**: Claude Code polling rate limits (not hook limitation)
+  - Hook implementation is correct, but Claude Code doesn't poll statusline continuously
+  - Expected behavior: Occasional updates rather than true real-time refresh
+  - Acceptable workaround: Current implementation sufficient for visibility
 - **GitHub Publication Blockers**: Preparing private project for public release
   - Hardcoded paths specific to /Users/philhudson preventing cross-machine execution
   - Missing MIT LICENSE file for open-source distribution
@@ -155,3 +163,9 @@
 - Statusline visualization pattern: shell scripts monitor lock files to display active agents with emoji identifiers and elapsed time
 - Process validation: statusline checks ps for PID validity to only show genuinely running agents
 - Time formatting pattern: elapsed time converted to "Xs" or "XmYs" format for compact readability in statusline
+- **SmartOrchestrator optimization pattern**: Replace full-project scan (rglob + MD5 hashing) with directory mtime fast-path to eliminate 1+ minute delays
+  - Current bottleneck: SmartOrchestrator.scan_project() recursively hashes ALL files before Conductor runs
+  - Optimization: Add directory mtime check as pre-filter to skip full scan when project unchanged
+  - Expected improvement: 1+ minute delay → near-instant (skipped scan) on unchanged projects
+  - Trade-off: May miss granular file changes if directory timestamps don't update consistently
+- **Paul using Opus model**: Enhanced for more complex analysis tasks within Band orchestration (upgrade from Sonnet)
