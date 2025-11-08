@@ -50,16 +50,17 @@ This index tracks all narrative documents maintained by George (the Narrative Ma
 
 ---
 
-**Last Updated:** November 8, 2025 - 19:18 PM
-- **GitHub Publication Phase Initiated**: Preparing CiaTc framework for open-source community release
-- Core.md: Added GitHub publication phase and blockers to Problems/Direction sections
-- Core.md: Documented completed tasks (path fixes, MIT LICENSE, .gitignore) and in-progress GitHub repo creation
-- Core.md: Key Decisions updated with GitHub publication initiative details
-- Scripts.md: Updated with path conversion strategy for cross-platform compatibility
-- Scripts.md: Documented decision to use relative paths via $(cd "$(dirname "$0")" && pwd) pattern
-- Documentation.md: Added GitHub publication phase theme with public release readiness
-- All narrative documentation refreshed to reflect current GitHub publication work
-- Performance optimization check: narrative docs updated 76 seconds after file_index.md change
+**Last Updated:** November 8, 2025 - 20:26 PM
+- **Performance Optimization Findings**: SmartOrchestrator bottleneck identified and documented
+- Core.md: Added SmartOrchestrator initialization delay (1+ minutes) to Problems section with root cause analysis
+- Core.md: Documented directory mtime fast-path solution strategy with expected improvements
+- Core.md: Added PRIORITY task for fixing SmartOrchestrator in Direction of Work
+- Core.md: Noted Paul upgraded to Opus model for enhanced complex analysis
+- Core.md: Clarified statusline real-time update limitation (Claude Code polling rate, not hook issue)
+- Technical.md: Added SmartOrchestrator optimization pattern with caching strategy
+- Technical.md: Documented fast-path implementation using directory mtime comparison
+- Technical.md: Added orchestrator initialization pattern with benefit/risk analysis
+- All narratives current with latest performance bottleneck analysis and optimization findings
 
 **Previous update:** November 8, 2025 - 18:57 PM
 - Claude Code statusline configuration integration initiated via /statusline command

@@ -38,6 +38,13 @@
 - Two-phase orchestration coordination: Band execution → Janitor post-response critique
 - Timestamp-based optimization: detecting unchanged projects and avoiding regeneration overhead
 - Janitor file I/O handling and temporary storage strategy documentation
+- **SmartOrchestrator initialization delay (1+ minutes)**: Full project scan blocks Conductor startup
+  - Root cause: SmartOrchestrator.scan_project() uses rglob("*") + MD5 hashing on every initialization
+  - Impact: Users wait 60+ seconds before Band response begins (poor user experience)
+  - Solution: Add directory mtime fast-path to skip full hashing when project tree unchanged
+  - Implementation: Compare project root directory mtime against cached state before full scan
+  - Expected improvement: 1+ minute → near-instant for unchanged projects (typical development sessions)
+  - Trade-off: May miss granular file changes if directory mtime not updated reliably
 
 ## Direction of Work
 - Building robust technical documentation infrastructure supporting two-phase orchestration with philosophical alignment
@@ -66,3 +73,10 @@
 - Feynman principle integration: architectural constraint ensuring all ideas explainable simply
 - Layered technical documentation: architectural_patterns.md (design) separate from operational_patterns.md (runtime)
 - Pattern separation of concerns: architecture vs operations documentation for clearer technical guidance
+- **Orchestrator initialization fast-path pattern**: Directory mtime check before full project scan
+  - Cache directory mtime + hash in .band_cache on initial scan
+  - On subsequent starts, compare current root dir mtime against cached value
+  - If unchanged: skip rglob and hashing, return cached state (near-instant)
+  - If changed: perform full scan, update cache
+  - Benefit: Typical dev sessions with no file changes → instant initialization
+  - Risk: Fine-grained edits without directory mtime update → stale state (acceptable trade-off)

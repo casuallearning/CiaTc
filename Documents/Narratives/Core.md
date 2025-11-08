@@ -1,5 +1,9 @@
 # Core Narrative - CiaTc Framework
 
+## Recent Milestones
+- **GitHub Repository Published** (Nov 8, 2025): CiaTc framework now public at https://github.com/casuallearning/CiaTc.git
+- **Timestamp Performance Issue Identified** (Nov 8, 2025): Despite implementing timestamp-based change detection, agents still regenerating on every invocation (evidence: statusline screenshot showing all agents at 0s simultaneously)
+
 ## Main Conversation Themes
 - Development of a multi-agent critique and analysis system with two-phase architecture: Band (pre-response) and Janitors (post-response)
 - Implementation of Band orchestrator (John, George, Pete, Paul, Ringo) for pre-response analysis
@@ -69,7 +73,7 @@
   - Completed: Fixed all hardcoded /Users/philhudson paths to relative/generic paths
   - Completed: Added MIT LICENSE file for open-source distribution
   - Completed: Enhanced .gitignore with project-specific patterns (.band_cache, Config, Context, etc)
-  - In Progress: GitHub repository creation with proper documentation and setup
+  - Completed: GitHub repository created at https://github.com/casuallearning/CiaTc.git
 
 ## Problems Being Solved
 - Need for systematic AI response quality control through multi-perspective analysis
@@ -97,11 +101,12 @@
   - Hook implementation is correct, but Claude Code doesn't poll statusline continuously
   - Expected behavior: Occasional updates rather than true real-time refresh
   - Acceptable workaround: Current implementation sufficient for visibility
-- **GitHub Publication Blockers**: Preparing private project for public release
-  - Hardcoded paths specific to /Users/philhudson preventing cross-machine execution
-  - Missing MIT LICENSE file for open-source distribution
-  - .gitignore insufficient for filtering project-specific artifacts (.band_cache, Config, Context, etc)
-  - Need for clean GitHub repository structure without user-specific artifacts
+- **Timestamp-based change detection not working**: Agents (George, Pete, others) still regenerating when they shouldn't
+  - Evidence: Screenshot shows george:0s, gilfoyle:0s, john:0s, marie:0s, pete:0s all running simultaneously
+  - Expected: If narratives newer than file_index, George should skip with "No updates needed"
+  - Current behavior: George and other agents running on EVERY invocation despite timestamp checks
+  - Root cause investigation needed: Are mtime comparisons failing? Are checks being bypassed?
+  - Impact: ~300x performance penalty - agents regenerating unchanged documentation repeatedly
 
 ## Direction of Work
 - Building comprehensive AI orchestration system with Band (pre-response) and Janitors (post-response) phases - now with Feynman simplicity principle embedded
@@ -109,11 +114,22 @@
 - Integration of janitor post-response critique system into hook orchestration workflow with Marie as active agent
 - Streamlining orchestration for efficiency and clarity with performance optimization
 - Framework in advanced operational phase with focus on stability and optimization
-- **GitHub Publication Phase**: Preparing CiaTc framework for open-source release with community ready state
-  - Hardcoded path refactoring: converting absolute paths to relative/generic paths for cross-platform compatibility
-  - MIT LICENSE file addition for proper open-source licensing
-  - .gitignore enhancement: adding project-specific patterns to prevent committing unnecessary files
-  - GitHub repository creation with proper structure and documentation
+- **PRIORITY: Fix SmartOrchestrator initialization bottleneck**
+  - Implement directory mtime fast-path in SmartOrchestrator.scan_project() to skip full hashing on unchanged projects
+  - Expected result: eliminate 1+ minute delay on unchanged projects (near-instant on cached state)
+  - Trade-off: may miss granular file changes if directory timestamps unreliable
+  - Measure impact on typical workflow to validate effectiveness
+- **CRITICAL: Fix timestamp-based change detection**
+  - Investigate why mtime checks failing: agents running on every invocation despite timestamp guards
+  - Review George's timestamp comparison logic in prompts/george.md
+  - Review Pete's timestamp comparison logic in prompts/pete.md
+  - Review John's file_index.json mtime comparison against project files
+  - Expected: agents should return early with status messages when outputs fresh
+  - Goal: eliminate ~300x performance penalty from unnecessary regeneration
+- **GitHub Publication Complete**: CiaTc framework now public at https://github.com/casuallearning/CiaTc.git
+  - Repository live with MIT LICENSE and proper .gitignore
+  - All hardcoded paths converted to relative/generic paths for cross-platform compatibility
+  - Next: Community documentation, contribution guidelines, and usage examples
 - Performance optimization strategy: prioritize request efficiency over token efficiency (Claude Max x20 subscription model)
 - Emphasis on speed and parallelism using concurrent execution patterns
 - Implementing intelligent caching with timestamp-based change detection (~300x speedup potential)
@@ -125,6 +141,8 @@
   - Integration with Claude Code's statusline feature for persistent visibility during long operations
   - Emoji-based visual indicators for quick agent identification
   - Claude Code statusline configuration: mapping user's shell PS1 configuration to statusline display via statusline-setup agent
+  - Acknowledged: Claude Code polling rate (not hook) limits real-time refresh - acceptable current implementation
+- Paul using Opus model for enhanced complex analysis tasks in Band orchestration
 - Paul's architectural input being sought on orchestrator design and optimization opportunities
 - Paul's evolution: Feynman thinking now core to wild ideas - all architectures must be explainable simply
 - Gilfoyle health agent fully integrated in Phase 1 parallel execution (renamed from build_health)

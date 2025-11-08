@@ -12,10 +12,11 @@
   - demo_band_statusline.sh: demonstration of statusline output in various agent execution scenarios
   - Visual indicators: emoji-based agent identification for quick recognition
   - Lock file-based agent tracking for lightweight state monitoring
-- **GitHub Publication Phase**: Preparing scripts for cross-platform, user-independent execution
-  - Path conversion from hardcoded /Users/philhudson to relative/generic paths
-  - Ensuring all shell scripts work on any machine without user-specific configuration
-  - Validation of activation/deactivation scripts with new path references
+- **GitHub Publication Complete** (Nov 8, 2025): Scripts ready for cross-platform execution
+  - Repository published at https://github.com/casuallearning/CiaTc.git
+  - All paths converted from hardcoded /Users/philhudson to relative/generic paths
+  - Shell scripts work on any machine without user-specific configuration
+  - Activation/deactivation scripts validated with new path references
 
 ## Key Decisions Made
 - Created activation script for different framework modes (band, janitors, full) with updated agent lineup
