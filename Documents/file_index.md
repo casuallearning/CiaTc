@@ -10,9 +10,7 @@
 - gilfoyle_agent.py - Specialized agent for code analysis and optimization tasks
 - prompt_loader.py - Utility for loading prompt files for the orchestrator systems
 - WaggleDanceCompiler.swift - Swift compiler implementation for waggle dance pattern processing
-- __pycache__/agent_lock.cpython-312.pyc - Compiled bytecode for agent lock module
-- __pycache__/conductor_agent.cpython-312.pyc - Compiled bytecode for conductor agent module
-- __pycache__/smart_orchestrator.cpython-312.pyc - Compiled bytecode for smart orchestrator module
+- archived_janitors_orchestrator.py - Archived post-analysis janitors orchestrator system
 
 ## Category: Tests
 - test_band_debug.py - Debug and testing script for band orchestrator functionality
@@ -23,6 +21,8 @@
 - activate_ciatc_final.sh - Shell script to activate the CiaTc framework (band, janitors, or full mode)
 - deactivate_ciatc_final.sh - Shell script to deactivate the CiaTc framework
 - activate_smart_band.sh - Shell script to activate the smart band orchestrator with performance optimization
+- demo_band_statusline.sh - Demo script showing Band statusline monitoring capabilities
+- band_statusline.sh - Statusline monitor script for Band agent status and performance metrics
 - PaulsLaboratory/create_ios_app.swift - Swift script for iOS application generation
 
 ## Category: Documentation
@@ -158,8 +158,10 @@
 - PaulsLaboratory/VanGoghFractalDemo.playground/contents.xcplayground - Playground configuration file
 
 **Last Updated**: November 8, 2025 (Latest) - File index updated
-- All 124 project files verified and organized across core, tests, scripts, documentation, and iOS applications
-- Added: dependency_graph.json to Technical category
-- Project structure includes CiaTc Framework core orchestration system
+- All 140+ project files verified and organized across core, tests, scripts, documentation, and iOS applications
+- Verified: band_statusline.sh and demo_band_statusline.sh for statusline monitoring
+- Verified: archived_janitors_orchestrator.py in Core category
+- Project structure includes CiaTc Framework core orchestration system with Band statusline monitoring
 - PaulsLaboratory subdirectory with experimental iOS applications and research
 - Comprehensive narrative and technical documentation system
+- Technical documentation includes dependency graphs and implementation logs
