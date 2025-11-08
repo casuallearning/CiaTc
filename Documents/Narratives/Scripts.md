@@ -16,9 +16,10 @@
   - statusline-command.sh: Advanced statusline script with model info, git branch, and band agent status
   - Consolidates model display, project context, and real-time agent activity in single statusline
   - Band agent detection: monitors .band_cache/locks for running/completed agents with emoji indicators
-  - Elapsed time display: shows seconds or minutes:seconds format for agent execution duration
+  - Elapsed time display: shows <1s for sub-second execution, seconds, or minutes:seconds format for agent execution duration
   - Git integration: displays current branch with modification indicator (*)
   - Process validation: only shows agents where PID is still alive
+  - **Time formatting refinement** (Nov 8, 2025): Added sub-second handling for rapid agent executions
 - **GitHub Publication Complete** (Nov 8, 2025): Scripts ready for cross-platform execution
   - Repository published at https://github.com/casuallearning/CiaTc.git
   - All paths converted from hardcoded /Users/philhudson to relative/generic paths
@@ -82,7 +83,7 @@
 - Emoji-based status visualization: icon mapping for quick visual identification (📁john, 📖george, 🔧pete, 💡paul, 🥁ringo, 🧹marie, 🏗️gilfoyle)
 - Elapsed time calculation: conversion from Unix timestamps with formatted output for readability
 - Process validation: use of `ps -p` to verify lock file PID still running before displaying
-- Time formatting logic: seconds-only for times < 60s, minutes:seconds format for longer durations
+- Time formatting logic: <1s for sub-second execution, seconds-only for times < 60s, minutes:seconds format for longer durations (refined Nov 8)
 - **Claude Code statusline command pattern**: statusline-command.sh integrates multiple contexts into single line
   - Reads JSON input from Claude Code context (model, workspace, version info)
   - Merges model display, user/host, project directory, git branch status, and band agent activity
