@@ -99,6 +99,7 @@
 - Documents/Technical/dependencies.md - External dependencies, environment variables, and hook system requirements
 - Documents/Technical/technical_patterns.md - Design patterns used in the CiaTc framework
 - Documents/Technical/implementation_log.md - Historical record of implementations, bug fixes, and troubleshooting
+- Documents/Technical/dependency_graph.json - Dependency visualization and architecture graph for project structure
 
 ## Category: Output
 - TestFiles/ - Test files directory (currently empty)
@@ -156,8 +157,9 @@
 - PaulsLaboratory/VanGoghFractalDemo.playground/Contents.swift - Swift playground demo for Van Gogh fractals
 - PaulsLaboratory/VanGoghFractalDemo.playground/contents.xcplayground - Playground configuration file
 
-**Last Updated**: November 8, 2025 - File index updated
-- All 130+ project files verified and organized across core, tests, scripts, documentation, and iOS applications
+**Last Updated**: November 8, 2025 (Latest) - File index updated
+- All 124 project files verified and organized across core, tests, scripts, documentation, and iOS applications
+- Added: dependency_graph.json to Technical category
 - Project structure includes CiaTc Framework core orchestration system
 - PaulsLaboratory subdirectory with experimental iOS applications and research
 - Comprehensive narrative and technical documentation system

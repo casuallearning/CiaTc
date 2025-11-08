@@ -1004,6 +1004,381 @@ User identified issues with agent behavior when prompts become meta-referential 
 
 ---
 
+## 2025-11-08: Status Line Enhancement Requirements - Hook Agent Activity Display
+
+### Context
+User requested a status-line feature that displays which hook agents are currently executing and their activity status. This would provide real-time visibility into background agent orchestration.
+
+### Current Status Line Implementation
+
+**Location:** `~/.claude/settings.local.json:68-71`
+
+**Current Configuration:**
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/philhudson/.claude/statusline-command.sh"
+  }
+}
+```
+
+**Current Script:** `/Users/philhudson/.claude/statusline-command.sh` (40 lines)
+
+**Current Status Line Display:**
+```
+user@hostname model_name dir_info (git:branch*) [HH:MM:SS] vX.X.X
+```
+
+**Components Displayed:**
+- User: `whoami` output
+- Hostname: `hostname -s` (short)
+- Model: `model.display_name` from JSON input (e.g., "Claude Sonnet")
+- Directory: Basename or relative path from project root
+- Git info: `(git:branch*)` where `*` indicates uncommitted changes
+- Time: Current time in HH:MM:SS format
+- Version: Claude Code version
+
+**Technical Implementation:**
+- Input: JSON via stdin with workspace and model information
+- Uses `jq` for JSON parsing
+- Git branch detection via `git branch --show-current`
+- Git dirty check via `git diff-index --quiet HEAD`
+- ANSI color codes for terminal styling (dimmed, colored sections)
+
+### Requirements for Hook Agent Activity Display
+
+**User Story:**
+"As a user, I want to see which hook agents are currently running in the background, so I can understand what work is being done and estimate completion time."
+
+**Functional Requirements:**
+
+1. **Real-Time Agent Status:**
+   - Display currently executing agents (John, George, Pete, Paul, Ringo, Gilfoyle, Marie, Descartes, Feynman)
+   - Show agent execution phase (Phase 1/2/3 for band orchestrator)
+   - Indicate completion percentage or elapsed time
+
+2. **Hook Event Context:**
+   - Distinguish between UserPromptSubmit and Stop hooks
+   - Show which hook system is active (band vs janitors)
+   - Display conductor decision (skipped, minimal, full band)
+
+3. **Performance Metrics:**
+   - Show elapsed time for current agent
+   - Display total hook execution time
+   - Indicate if agent is approaching timeout
+
+4. **Visual Design:**
+   - Non-intrusive display (fits in status line)
+   - Color coding for status (green=running, yellow=warning, red=timeout)
+   - Abbreviated agent names to save space
+
+### Technical Implementation Approaches
+
+#### Approach 1: Lock File Monitoring (Recommended)
+
+**Mechanism:** Monitor `.band_cache/locks/` directory for active agent locks
+
+**Implementation:**
+```bash
+#!/bin/bash
+# Enhanced statusline-command.sh with agent monitoring
+
+# ... existing statusline code ...
+
+# Check for active agent locks
+active_agents=""
+lock_dir="/Users/philhudson/Projects/CiaTc/.band_cache/locks"
+
+if [ -d "$lock_dir" ]; then
+    for lock_file in "$lock_dir"/*.lock; do
+        if [ -f "$lock_file" ]; then
+            agent_name=$(basename "$lock_file" .lock)
+            lock_age=$(( $(date +%s) - $(stat -f %m "$lock_file") ))
+
+            # Only show locks < 600s old (active)
+            if [ $lock_age -lt 600 ]; then
+                active_agents="$active_agents ${agent_name:0:1}"  # First letter only
+            fi
+        fi
+    done
+fi
+
+# Append to status line
+if [ -n "$active_agents" ]; then
+    printf " \033[2;33m[%s]\033[0m" "$active_agents"
+fi
+```
+
+**Benefits:**
+- Uses existing infrastructure (lock files already present)
+- No modification to orchestrator scripts needed
+- Real-time visibility (lock files updated immediately)
+- Minimal performance overhead (just file system stat calls)
+
+**Limitations:**
+- No phase information (can't tell if Phase 1 or Phase 3)
+- No elapsed time precision (only lock file mtime)
+- Can't distinguish UserPromptSubmit vs Stop hooks
+
+---
+
+#### Approach 2: Shared State File
+
+**Mechanism:** Orchestrators write progress to `.band_cache/agent_status.json`
+
+**Implementation:**
+
+**Orchestrator modification (band_orchestrator_main.py):**
+```python
+# Before executing agents
+status_file = Path('.band_cache/agent_status.json')
+status = {
+    'hook_event': 'UserPromptSubmit',
+    'phase': 1,
+    'active_agents': ['john', 'build_health'],
+    'start_time': time.time(),
+    'conductor_decision': 'full_band'
+}
+status_file.write_text(json.dumps(status))
+
+# Update as phases complete
+status['phase'] = 2
+status['active_agents'] = ['george', 'pete']
+status_file.write_text(json.dumps(status))
+```
+
+**Status line script:**
+```bash
+status_file="/Users/philhudson/Projects/CiaTc/.band_cache/agent_status.json"
+
+if [ -f "$status_file" ]; then
+    hook_event=$(jq -r '.hook_event' "$status_file")
+    phase=$(jq -r '.phase' "$status_file")
+    agents=$(jq -r '.active_agents | join(",")' "$status_file")
+    start_time=$(jq -r '.start_time' "$status_file")
+
+    elapsed=$(( $(date +%s) - $start_time ))
+
+    # Abbreviate hook event (U=UserPromptSubmit, S=Stop)
+    hook_abbr="${hook_event:0:1}"
+
+    printf " \033[2;36m[%s:P%d:%ds]\033[0m" "$hook_abbr" "$phase" "$elapsed"
+fi
+```
+
+**Display Example:**
+```
+user@host Sonnet CiaTc (git:main) [14:23:45] [U:P2:12s] v1.0
+```
+
+**Benefits:**
+- Rich context (phase, hook type, elapsed time)
+- Conductor decision visibility
+- Precise timing information
+- Extendable (can add more metadata)
+
+**Limitations:**
+- Requires orchestrator modifications
+- File I/O overhead on every status update
+- Race conditions if multiple hooks running simultaneously
+
+---
+
+#### Approach 3: Process Tree Inspection
+
+**Mechanism:** Use `pgrep` and `ps` to find active Claude CLI subprocesses
+
+**Implementation:**
+```bash
+# Find Claude subprocesses spawned by band orchestrator
+claude_procs=$(pgrep -f "claude.*--prompt.*prompts/(john|george|pete|paul|ringo)")
+
+if [ -n "$claude_procs" ]; then
+    # Count active agents
+    agent_count=$(echo "$claude_procs" | wc -l | tr -d ' ')
+    printf " \033[2;33m[%d agents]\033[0m" "$agent_count"
+fi
+```
+
+**Benefits:**
+- No orchestrator modifications needed
+- Accurate process state (running vs finished)
+- Works with any hook configuration
+
+**Limitations:**
+- High overhead (pgrep on every status line refresh)
+- Can't distinguish agent names reliably
+- Process tree may be complex (subprocesses of subprocesses)
+- Platform-specific (pgrep behavior varies)
+
+---
+
+### Recommended Implementation
+
+**Phase 1 (Quick Win):** Approach 1 (Lock File Monitoring)
+- Modify `/Users/philhudson/.claude/statusline-command.sh`
+- Add lock file scanning
+- Display first letter of active agents: `[J G P]` = John, George, Pete active
+- Low implementation cost (~20 lines of bash)
+
+**Phase 2 (Enhanced):** Approach 2 (Shared State File)
+- Add `agent_status.json` updates to orchestrators
+- Enhance status line to show phase and elapsed time
+- Display: `[U:P2:12s]` = UserPromptSubmit, Phase 2, 12 seconds elapsed
+- Medium implementation cost (~50 lines Python + 30 lines bash)
+
+**Phase 3 (Polish):**
+- Add color coding for timeout warnings (yellow >60s, red >300s)
+- Show conductor decision in abbreviated form
+- Add agent completion percentage if available
+- Implement cleanup (remove stale status files)
+
+### Technical Risks
+
+1. **Performance Impact:**
+   - Status line refreshes frequently (~1-2 Hz on some terminals)
+   - File I/O on every refresh could impact performance
+   - Mitigation: Cache status file reads, only refresh if mtime changed
+
+2. **Display Real Estate:**
+   - Status line has limited horizontal space
+   - Too much information = unreadable
+   - Mitigation: Use abbreviations, only show when agents active
+
+3. **Race Conditions:**
+   - Multiple hooks (UserPromptSubmit + Stop) running simultaneously
+   - Status file could be corrupted by concurrent writes
+   - Mitigation: Use atomic writes (write to temp, then rename)
+
+4. **Stale Status:**
+   - Agent crash leaves lock file or status file in active state
+   - Status line shows "active" when nothing is running
+   - Mitigation: Timeout-based cleanup (don't show status >10 minutes old)
+
+### Performance Considerations
+
+**Lock File Monitoring (Approach 1):**
+- File system stat: ~0.1ms per lock file
+- Worst case: 9 agents × 0.1ms = 0.9ms overhead
+- Status line refresh: 1-2 Hz = 0.9-1.8ms/s total overhead (negligible)
+
+**Shared State File (Approach 2):**
+- JSON parse: ~1ms for small file (<1KB)
+- File read: ~0.5ms (cached in OS)
+- Total: ~1.5ms per status line refresh (acceptable)
+
+**Process Tree Inspection (Approach 3):**
+- pgrep execution: ~5-10ms (spawns subprocess)
+- ps parsing: ~2-5ms
+- Total: ~7-15ms per refresh (noticeable on slow systems)
+
+### Integration Points
+
+**Files to Modify:**
+
+**Phase 1 (Lock Monitoring):**
+1. `/Users/philhudson/.claude/statusline-command.sh`: Add lock file scanning
+
+**Phase 2 (Shared State):**
+1. `band_orchestrator_main.py`: Write status updates
+2. `band_orchestrator_stop.py`: Write status updates
+3. `janitors_orchestrator_main.py`: Write status updates (if applicable)
+4. `/Users/philhudson/.claude/statusline-command.sh`: Read and display status
+
+**New Files:**
+1. `.band_cache/agent_status.json`: Shared state file (created by orchestrators)
+
+### Environment Requirements
+
+**Existing:**
+- Bash 3.2+ (macOS default)
+- `jq` for JSON parsing (already required for current status line)
+- `stat` command (BSD version on macOS)
+- `date` command with +%s (epoch seconds)
+
+**New (Phase 2):**
+- Python `json` module (already present)
+- Atomic file writes in Python (use `tempfile` + `os.rename`)
+
+### Testing Strategy
+
+1. **Manual Testing:**
+   - Trigger UserPromptSubmit hook, verify agents appear in status line
+   - Trigger Stop hook, verify different display
+   - Submit rapid prompts, verify status updates correctly
+   - Test with conductor skip decision, verify no false positives
+
+2. **Edge Cases:**
+   - Agent timeout (lock file >600s old)
+   - Concurrent hooks (UserPromptSubmit + Stop simultaneously)
+   - Agent crash (lock file remains, process gone)
+   - Empty project (no agents run)
+
+3. **Performance Testing:**
+   - Measure status line refresh time before/after
+   - Monitor file I/O overhead with `fs_usage` or `dtrace`
+   - Verify no performance degradation on large projects (500+ files)
+
+### Related Patterns
+
+- **Lock File Management Pattern:** Uses existing `.band_cache/locks/` infrastructure
+- **Shared State Pattern:** Agent status file as coordination mechanism
+- **Status Line Hook:** Claude Code's statusLine configuration for real-time display
+
+### Dependencies
+
+**Libraries/Tools:**
+- `jq`: JSON parsing in bash (already installed)
+- `stat`: File metadata (BSD version, macOS built-in)
+- `date`: Epoch time calculation (macOS built-in)
+
+**Files:**
+- `.band_cache/locks/*.lock`: Lock files written by agent_lock.py
+- `.band_cache/agent_status.json`: Status file (Phase 2, to be created)
+- `/Users/philhudson/.claude/statusline-command.sh`: Status line script
+
+### Documentation Updates Required
+
+1. **technical_patterns.md:** Add "Status Line Integration Pattern"
+2. **dependencies.md:** Document `jq` requirement, status file format
+3. **implementation_log.md:** This entry
+4. **README.md:** User-facing explanation of status line indicators
+
+### Success Criteria
+
+**Phase 1 (Lock Monitoring):**
+- [ ] Status line shows active agents while hook is executing
+- [ ] Agents disappear from status line when lock released
+- [ ] Display fits in standard terminal width (80 chars)
+- [ ] No performance degradation (status line refresh <2ms)
+
+**Phase 2 (Shared State):**
+- [ ] Status line shows current phase (1/2/3)
+- [ ] Elapsed time displays and updates
+- [ ] Hook type indicated (UserPromptSubmit vs Stop)
+- [ ] Conductor decision visible when relevant
+- [ ] Atomic writes prevent race conditions
+
+### Next Steps (Implementation Priority)
+
+1. **High Priority:** Implement Phase 1 (lock file monitoring)
+   - Immediate user value
+   - Low implementation cost
+   - No orchestrator changes needed
+
+2. **Medium Priority:** Implement Phase 2 (shared state file)
+   - Enhanced visibility
+   - Requires orchestrator modifications
+   - Higher value for power users
+
+3. **Low Priority:** Polish and optimization
+   - Color coding, abbreviations
+   - Performance tuning
+   - Edge case handling
+
+---
+
 ## 2025-11-08: Smart Conductor System Implementation
 
 ### Overview
